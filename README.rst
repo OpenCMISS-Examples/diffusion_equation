@@ -8,7 +8,7 @@ This example solves the weak form of the following diffusion equation,
 
 |diffusion_equation|
 
-using the Galerkin Finite Element method. |conductivity_tensor| and |alpha| are the positive definite and symmetric rank two conductivity tensor and a scalar (e.g. thermal capacity) respectively. The dependent variable |u| is a spatially varying scalar field (e.g. temperature). In this example an isotropic and homogeneous material is considered with |equation1| (identity tensor) and |equation2| is considered. 
+using the Galerkin Finite Element method. |conductivity_tensor| and |alpha| are the positive definite and symmetric rank two conductivity tensor and a scalar parameter (e.g. thermal capacity) respectively. The dependent variable |u| is a spatially varying scalar field (e.g. temperature). In this example an isotropic and homogeneous material with |equation1| (identity tensor) and |equation2| is considered. 
 
 
 .. |diffusion_equation| image:: ./docs/images/diffusion_equation.svg
