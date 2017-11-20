@@ -53,16 +53,6 @@ Fortran version::
   cd ./src/fortran/
   ./diffusion_equation
 
-Python version::
-
-  cd ./diffusion_equation/src/python
-  source  /path/to/opencmisslibs/install/.../.../virtualenvironments/oclibs_pyXY_release/bin/activate
-  python diffusion_equation.py
-  
-  Note: If the above fails, try the following.
-  cd ./diffusion_equation/src/python
-  PYTHONPATH="/path/to/opencmisslibs/install/.../.../Release/opencmiss.iron" python diffusion_equation.py  
-
 
 Verifying the example
 =====================
