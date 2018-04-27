@@ -1,4 +1,4 @@
-PROGRAM DIFFUSION_EQUATION
+PROGRAM DiffusionEquation
 
   USE OpenCMISS
   USE OpenCMISS_Iron
@@ -54,7 +54,9 @@ PROGRAM DIFFUSION_EQUATION
   
   !CMISS variables
   TYPE(cmfe_BasisType) :: Basis
-  TYPE(cmfe_CoordinateSystemType) :: CoordinateSystem,WorldCoordinateSystem
+  TYPE(cmfe_ComputationEnvironmentType) :: computationEnvironment
+  TYPE(cmfe_ContextType) :: context
+  TYPE(cmfe_CoordinateSystemType) :: CoordinateSystem
   TYPE(cmfe_DecompositionType) :: Decomposition
   TYPE(cmfe_EquationsType) :: Equations
   TYPE(cmfe_EquationsSetType) :: EquationsSet
@@ -94,13 +96,17 @@ PROGRAM DIFFUSION_EQUATION
 #endif
 
   !Intialise OpenCMISS
-  CALL cmfe_Initialise(WorldCoordinateSystem,WorldRegion,Err)
-
-  CALL cmfe_ErrorHandlingModeSet(CMFE_ERRORS_TRAP_ERROR,Err)
+  CALL cmfe_Context_Initialise(context,err)
+  CALL cmfe_Initialise(context,err)
+  CALL cmfe_ErrorHandlingModeSet(CMFE_ERRORS_TRAP_ERROR,err)
+  CALL cmfe_Region_Initialise(worldRegion,err)
+  CALL cmfe_Context_WorldRegionGet(context,worldRegion,err)
 
   !Get the computational nodes information
-  CALL cmfe_ComputationalNumberOfNodesGet(NumberOfComputationalNodes,Err)
-  CALL cmfe_ComputationalNodeNumberGet(ComputationalNodeNumber,Err)
+  CALL cmfe_ComputationEnvironment_Initialise(computationEnvironment,err)
+  CALL cmfe_Context_ComputationEnvironmentGet(context,computationEnvironment,err)
+  CALL cmfe_ComputationEnvironment_NumberOfWorldNodesGet(computationEnvironment,numberOfComputationalNodes,err)
+  CALL cmfe_ComputationEnvironment_WorldNodeNumberGet(computationEnvironment,computationalNodeNumber,err)
 
   NUMBER_GLOBAL_X_ELEMENTS=10
   NUMBER_GLOBAL_Y_ELEMENTS=10
@@ -119,7 +125,7 @@ PROGRAM DIFFUSION_EQUATION
   
   !Start the creation of a new RC coordinate system
   CALL cmfe_CoordinateSystem_Initialise(CoordinateSystem,Err)
-  CALL cmfe_CoordinateSystem_CreateStart(CoordinateSystemUserNumber,CoordinateSystem,Err)
+  CALL cmfe_CoordinateSystem_CreateStart(CoordinateSystemUserNumber,context,CoordinateSystem,Err)
   IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
     !Set the coordinate system to be 2D
     CALL cmfe_CoordinateSystem_DimensionSet(CoordinateSystem,2,Err)
@@ -149,7 +155,7 @@ PROGRAM DIFFUSION_EQUATION
   
   !Start the creation of a basis (default is trilinear lagrange)
   CALL cmfe_Basis_Initialise(Basis,Err)
-  CALL cmfe_Basis_CreateStart(BasisUserNumber,Basis,Err)
+  CALL cmfe_Basis_CreateStart(BasisUserNumber,context,Basis,Err)
   IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
     !Set the basis to be a bilinear Lagrange basis
     !CALL cmfe_Basis_TypeSet(Basis,CMFE_BASIS_LAGRANGE_HERMITE_TP_TYPE,Err)
@@ -263,7 +269,8 @@ PROGRAM DIFFUSION_EQUATION
   !Create the equations set analytic field variables
   CALL cmfe_Field_Initialise(AnalyticField,Err)
   IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN  
-    CALL cmfe_EquationsSet_AnalyticCreateStart(EquationsSet,CMFE_EQUATIONS_SET_DIFFUSION_EQUATION_TWO_DIM_1, &
+    CALL cmfe_EquationsSet_AnalyticCreateStart(EquationsSet, &
+      & CMFE_EQUATIONS_SET_DIFFUSION_EQUATION_TWO_DIM_1, &
       & AnalyticFieldUserNumber, &
       & AnalyticField,Err)
   ELSE
@@ -335,8 +342,8 @@ PROGRAM DIFFUSION_EQUATION
 
   !Create the problem
   CALL cmfe_Problem_Initialise(Problem,Err)
-  CALL cmfe_Problem_CreateStart(ProblemUserNumber,[CMFE_PROBLEM_CLASSICAL_FIELD_CLASS,CMFE_PROBLEM_DIFFUSION_EQUATION_TYPE, &
-    & CMFE_PROBLEM_NO_SOURCE_DIFFUSION_SUBTYPE],Problem,Err)
+  CALL cmfe_Problem_CreateStart(ProblemUserNumber,context,[CMFE_PROBLEM_CLASSICAL_FIELD_CLASS, &
+    & CMFE_PROBLEM_DIFFUSION_EQUATION_TYPE,CMFE_PROBLEM_NO_SOURCE_DIFFUSION_SUBTYPE],Problem,Err)
   !Finish the creation of a problem.
   CALL cmfe_Problem_CreateFinish(Problem,Err)
 
@@ -438,11 +445,10 @@ PROGRAM DIFFUSION_EQUATION
 !   CALL WRITE_STRING_TWO_VALUE(GENERAL_OUTPUT_TYPE,"User time = ",STOP_USER_TIME(1)-START_USER_TIME(1),", System time = ", &
 !     & STOP_SYSTEM_TIME(1)-START_SYSTEM_TIME(1),ERR,ERROR,*999)
 !   
-  !CALL CMFE_FINALISE(ERR,ERROR,*999)
-  !CALL cmfe_Finalise(Err)
+  CALL cmfe_Finalise(context,Err)
   WRITE(*,'(A)') "Program successfully completed."
   
 
   STOP
   
-END PROGRAM DIFFUSION_EQUATION
+END PROGRAM DiffusionEquation
