@@ -110,8 +110,8 @@ PROGRAM DiffusionEquation
   
   CALL cmfe_WorkGroup_Initialise(worldWorkGroup,err)
   CALL cmfe_ComputationEnvironment_WorldWorkGroupGet(computationEnvironment,worldWorkGroup,err)
-  CALL cmfe_WorkGroup_NumberOfGroupNodesGet(worldWorkGroup,numberOfComputationNodes,err)
-  CALL cmfe_WorkGroup_GroupNodeNumberGet(worldWorkGroup,computationNodeNumber,err)
+  CALL cmfe_WorkGroup_NumberOfGroupNodesGet(worldWorkGroup,numberOfComputationalNodes,err)
+  CALL cmfe_WorkGroup_GroupNodeNumberGet(worldWorkGroup,computationalNodeNumber,err)
 
   NUMBER_GLOBAL_X_ELEMENTS=10
   NUMBER_GLOBAL_Y_ELEMENTS=10
