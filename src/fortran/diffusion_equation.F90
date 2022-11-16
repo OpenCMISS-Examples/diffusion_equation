@@ -25,20 +25,21 @@ PROGRAM DiffusionEquation
   REAL(CMISSRP), PARAMETER :: WIDTH=1.0_CMISSRP
   REAL(CMISSRP), PARAMETER :: LENGTH=3.0_CMISSRP
   
-  INTEGER(CMISSIntg), PARAMETER :: CoordinateSystemUserNumber=1
-  INTEGER(CMISSIntg), PARAMETER :: RegionUserNumber=2
-  INTEGER(CMISSIntg), PARAMETER :: BasisUserNumber=3
-  INTEGER(CMISSIntg), PARAMETER :: GeneratedMeshUserNumber=4
-  INTEGER(CMISSIntg), PARAMETER :: MeshUserNumber=5
-  INTEGER(CMISSIntg), PARAMETER :: DecompositionUserNumber=6
-  INTEGER(CMISSIntg), PARAMETER :: DecomposerUserNumber=7
-  INTEGER(CMISSIntg), PARAMETER :: GeometricFieldUserNumber=8
-  INTEGER(CMISSIntg), PARAMETER :: EquationsSetFieldUserNumber=9
-  INTEGER(CMISSIntg), PARAMETER :: DependentFieldUserNumber=10
-  INTEGER(CMISSIntg), PARAMETER :: MaterialsFieldUserNumber=11
-  INTEGER(CMISSIntg), PARAMETER :: EquationsSetUserNumber=12
-  INTEGER(CMISSIntg), PARAMETER :: ProblemUserNumber=13
-  INTEGER(CMISSIntg), PARAMETER :: AnalyticFieldUserNumber=14
+  INTEGER(CMISSIntg), PARAMETER :: ContextUserNumber=1
+  INTEGER(CMISSIntg), PARAMETER :: CoordinateSystemUserNumber=2
+  INTEGER(CMISSIntg), PARAMETER :: RegionUserNumber=3
+  INTEGER(CMISSIntg), PARAMETER :: BasisUserNumber=4
+  INTEGER(CMISSIntg), PARAMETER :: GeneratedMeshUserNumber=5
+  INTEGER(CMISSIntg), PARAMETER :: MeshUserNumber=6
+  INTEGER(CMISSIntg), PARAMETER :: DecompositionUserNumber=7
+  INTEGER(CMISSIntg), PARAMETER :: DecomposerUserNumber=8
+  INTEGER(CMISSIntg), PARAMETER :: GeometricFieldUserNumber=9
+  INTEGER(CMISSIntg), PARAMETER :: EquationsSetFieldUserNumber=10
+  INTEGER(CMISSIntg), PARAMETER :: DependentFieldUserNumber=11
+  INTEGER(CMISSIntg), PARAMETER :: MaterialsFieldUserNumber=12
+  INTEGER(CMISSIntg), PARAMETER :: EquationsSetUserNumber=13
+  INTEGER(CMISSIntg), PARAMETER :: ProblemUserNumber=14
+  INTEGER(CMISSIntg), PARAMETER :: AnalyticFieldUserNumber=15
 
   !Program types
   
@@ -97,10 +98,14 @@ PROGRAM DiffusionEquation
   IF(.NOT.QUICKWIN_STATUS) QUICKWIN_STATUS=SETWINDOWCONFIG(QUICKWIN_WINDOW_CONFIG)
 #endif
 
+  STOP
+
   !Intialise OpenCMISS
-  CALL cmfe_Context_Initialise(context,err)
-  CALL cmfe_Initialise(context,err)
+  CALL cmfe_Initialise(err)
   CALL cmfe_ErrorHandlingModeSet(CMFE_ERRORS_TRAP_ERROR,err)
+  !Create a context
+  CALL cmfe_Context_Initialise(context,err)
+  CALL cmfe_Context_Create(ContextUserNumber,context,err)
   CALL cmfe_Region_Initialise(worldRegion,err)
   CALL cmfe_Context_WorldRegionGet(context,worldRegion,err)
 
@@ -455,8 +460,13 @@ PROGRAM DiffusionEquation
 ! 
 !   CALL WRITE_STRING_TWO_VALUE(GENERAL_OUTPUT_TYPE,"User time = ",STOP_USER_TIME(1)-START_USER_TIME(1),", System time = ", &
 !     & STOP_SYSTEM_TIME(1)-START_SYSTEM_TIME(1),ERR,ERROR,*999)
-!   
-  CALL cmfe_Finalise(context,Err)
+  !
+
+  !Destroy the context
+  CALL cmfe_Context_Destroy(context,err)
+  !Finalise OpenCMISS
+  CALL cmfe_Finalise(err)
+  
   WRITE(*,'(A)') "Program successfully completed."
   
 
