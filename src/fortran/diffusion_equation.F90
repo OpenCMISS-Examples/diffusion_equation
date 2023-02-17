@@ -72,6 +72,8 @@ PROGRAM DiffusionEquation
   INTEGER(CMISSIntg) :: err
   LOGICAL :: exportField
 
+  STOP
+
   !Intialise OpenCMISS
   CALL cmfe_Initialise(err)
   CALL cmfe_ErrorHandlingModeSet(CMFE_ERRORS_TRAP_ERROR,err)
