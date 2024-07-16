@@ -38,9 +38,10 @@ Building the example
 The fortran version of the example can be configured and built with CMake::
 
   git clone https://github.com/OpenCMISS-Examples/diffusion_equation
-  mkdir diffusion_equation-build
-  cd diffusion_equation-build
-  cmake -DOpenCMISSLibs_DIR=/path/to/opencmisslib/install ../diffusion_equation
+  cd diffusion_equation
+  mkdir build
+  cd build
+  cmake -DOpenCMISS_INSTALL_ROOT=/path/to/opencmiss/install ../.
   make
 
 This will create the example executable "diffusion_equation" in ./src/fortran/ directory.
