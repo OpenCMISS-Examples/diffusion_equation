@@ -9,9 +9,21 @@ PROGRAM DiffusionEquation
   !-----------------------------------------------------------------------------------------------------------
   
   !Test program parameters
+  REAL(OC_RP), PARAMETER :: PI=3.141592653589793238462643383279502884197_OC_RP 
+ 
   REAL(OC_RP), PARAMETER :: HEIGHT=1.0_OC_RP
   REAL(OC_RP), PARAMETER :: WIDTH=1.0_OC_RP
   REAL(OC_RP), PARAMETER :: LENGTH=3.0_OC_RP
+
+  REAL(OC_RP), PARAMETER :: MATERIALS_A_PARAM = 1.0_OC_RP
+  REAL(OC_RP), PARAMETER :: MATERIALS_SIGMA_PARAM = -0.01_OC_RP
+
+  REAL(OC_RP), PARAMETER :: ANALYTIC_A_PARAM = 1.0_OC_RP
+  REAL(OC_RP), PARAMETER :: ANALYTIC_PHI_PARAM = PI/4.0_OC_RP
+
+  REAL(OC_RP), PARAMETER :: TIME_START = 0.0_OC_RP
+  REAL(OC_RP), PARAMETER :: TIME_STOP = 1.0_OC_RP
+  REAL(OC_RP), PARAMETER :: TIME_STEP = 0.005_OC_RP
   
   INTEGER(OC_Intg), PARAMETER :: CONTEXT_USER_NUMBER=1
   INTEGER(OC_Intg), PARAMETER :: COORDINATE_SYSTEM_USER_NUMBER=2
@@ -84,8 +96,8 @@ PROGRAM DiffusionEquation
   CALL OC_WorkGroup_NumberOfGroupNodesGet(worldWorkGroup,numberOfComputationalNodes,err)
   CALL OC_WorkGroup_GroupNodeNumberGet(worldWorkGroup,computationalNodeNumber,err)
 
-  numberOfGlobalXElements=10
-  numberOfGlobalYElements=10
+  numberOfGlobalXElements=4
+  numberOfGlobalYElements=4
   numberOfGlobalZElements=0
 
   !-----------------------------------------------------------------------------------------------------------
@@ -151,10 +163,10 @@ PROGRAM DiffusionEquation
   CALL OC_GeneratedMesh_BasisSet(generatedMesh,basis,err)   
   !Define the mesh on the region
   IF(numberOfGlobalZElements==0) THEN
-    CALL OC_GeneratedMesh_ExtentSet(generatedMesh,[WIDTH,HEIGHT],err)
+    CALL OC_GeneratedMesh_ExtentSet(generatedMesh,[LENGTH,HEIGHT],err)
     CALL OC_GeneratedMesh_NumberOfElementsSet(generatedMesh,[numberOfGlobalXElements,numberOfGlobalYElements],err)
   ELSE
-    CALL OC_GeneratedMesh_ExtentSet(generatedMesh,[WIDTH,HEIGHT,LENGTH],err)
+    CALL OC_GeneratedMesh_ExtentSet(generatedMesh,[LENGTH,HEIGHT,WIDTH],err)
     CALL OC_GeneratedMesh_NumberOfElementsSet(generatedMesh,[numberOfGlobalXElements,numberOfGlobalYElements, &
       & numberOfGlobalZElements],err)
   ENDIF
@@ -239,6 +251,16 @@ PROGRAM DiffusionEquation
   !Finish the equations set dependent field variables
   CALL OC_EquationsSet_MaterialsCreateFinish(equationsSet,err)
 
+  !Initialise the materials parameters
+  CALL OC_Field_ComponentValuesInitialise(materialsField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,1, &
+    & MATERIALS_A_PARAM,err)
+  CALL OC_Field_ComponentValuesInitialise(materialsField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,2, &
+    & MATERIALS_SIGMA_PARAM,err)
+  CALL OC_Field_ComponentValuesInitialise(materialsField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,3, &
+    & MATERIALS_SIGMA_PARAM,err)
+  CALL OC_Field_ComponentValuesInitialise(materialsField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,4, &
+    & 0.0_OC_RP,err)
+  
   !-----------------------------------------------------------------------------------------------------------
   ! ANALYTIC FIELD
   !-----------------------------------------------------------------------------------------------------------
@@ -256,6 +278,20 @@ PROGRAM DiffusionEquation
   !Finish the equations set analytic field variables
   CALL OC_EquationsSet_AnalyticCreateFinish(equationsSet,err)
   
+  !Initialise the analytic parameters
+  IF(numberOfGlobalZElements==0) THEN  
+    CALL OC_Field_ComponentValuesInitialise(analyticField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,1, &
+      & ANALYTIC_A_PARAM,err)
+    CALL OC_Field_ComponentValuesInitialise(analyticField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,2, &
+      & ANALYTIC_PHI_PARAM,err)
+    CALL OC_Field_ComponentValuesInitialise(analyticField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,3, &
+      & LENGTH,err)
+    CALL OC_Field_ComponentValuesInitialise(analyticField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,4, &
+      & HEIGHT,err)
+    CALL OC_Field_ComponentValuesInitialise(analyticField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,5, &
+      & MATERIALS_SIGMA_PARAM,err)
+  ENDIF
+  
   !-----------------------------------------------------------------------------------------------------------
   ! EQUATIONS
   !-----------------------------------------------------------------------------------------------------------  
@@ -269,7 +305,7 @@ PROGRAM DiffusionEquation
   !CALL OC_Equations_OutputTypeSet(equations,OC_EQUATIONS_NO_OUTPUT,err)
   !CALL OC_Equations_OutputTypeSet(equations,OC_EQUATIONS_TIMING_OUTPUT,err)
   !CALL OC_Equations_OutputTypeSet(equations,OC_EQUATIONS_MATRIX_OUTPUT,err)
-  !CALL OC_Equations_OutputTypeSet(equations,OC_EQUATIONS_ELEMENT_MATRIX_OUTPUT,err)
+  CALL OC_Equations_OutputTypeSet(equations,OC_EQUATIONS_ELEMENT_MATRIX_OUTPUT,err)
   !Finish the equations set equations
   CALL OC_EquationsSet_EquationsCreateFinish(equationsSet,err)
 
@@ -290,7 +326,7 @@ PROGRAM DiffusionEquation
   CALL OC_ControlLoop_Initialise(controlLoop,err)
   CALL OC_Problem_ControlLoopGet(problem,OC_CONTROL_LOOP_NODE,controlLoop,err)
   !Set the times
-  CALL OC_ControlLoop_TimesSet(controlLoop,0.0_OC_RP,1.001_OC_RP,0.001_OC_RP,err)
+  CALL OC_ControlLoop_TimesSet(controlLoop,TIME_START,TIME_STOP,TIME_STEP,err)
   !Finish creating the problem control loop
   CALL OC_Problem_ControlLoopCreateFinish(problem,err)
 
@@ -305,9 +341,10 @@ PROGRAM DiffusionEquation
   CALL OC_Problem_SolversCreateStart(problem,err)
   CALL OC_Problem_SolverGet(problem,OC_CONTROL_LOOP_NODE,1,solver,err)
   !CALL OC_Solver_OutputTypeSet(solver,OC_SOLVER_NO_OUTPUT,err)
-  CALL OC_Solver_OutputTypeSet(solver,OC_SOLVER_PROGRESS_OUTPUT,err)
+  !CALL OC_Solver_OutputTypeSet(solver,OC_SOLVER_PROGRESS_OUTPUT,err)
   !CALL OC_Solver_OutputTypeSet(solver,OC_SOLVER_TIMING_OUTPUT,err)
   !CALL OC_Solver_OutputTypeSet(solver,OC_SOLVER_SOLVER_OUTPUT,err)
+  CALL OC_Solver_OutputTypeSet(solver,OC_SOLVER_MATRIX_OUTPUT,err)
   CALL OC_Solver_DynamicLinearSolverGet(solver,linearSolver,err)
   CALL OC_Solver_LinearIterativeMaximumIterationsSet(linearSolver,1000_OC_Intg,err)
   !Finish the creation of the problem solver
@@ -345,6 +382,14 @@ PROGRAM DiffusionEquation
   !-----------------------------------------------------------------------------------------------------------
   ! SOLVE
   !-----------------------------------------------------------------------------------------------------------
+
+  !Set the analytic time to time start
+  CALL OC_EquationsSet_AnalyticTimeSet(equationsSet,TIME_START,err)
+  !Evaluate the analytic solution
+  CALL OC_EquationsSet_AnalyticEvaluate(equationsSet,err)
+  !Copy the analytic solution to the dependent field as the initial condition
+  CALL OC_Field_ParametersToFieldParametersComponentCopy(dependentField,OC_FIELD_U_VARIABLE_TYPE, &
+    & OC_FIELD_ANALYTIC_VALUES_SET_TYPE,1,dependentField,OC_FIELD_U_VARIABLE_TYPE,OC_FIELD_VALUES_SET_TYPE,1,err) 
   
   !Solve the problem
   CALL OC_Problem_Solve(problem,err)
@@ -353,6 +398,10 @@ PROGRAM DiffusionEquation
   ! OUTPUT
   !----------------------------------------------------------------------------------------------------------
 
+  !Set the analytic time to time start
+  CALL OC_EquationsSet_AnalyticTimeSet(equationsSet,TIME_STOP,err)
+  !Evaluate the analytic solution
+  CALL OC_EquationsSet_AnalyticEvaluate(equationsSet,err)
   !Output Analytic analysis
   Call OC_AnalyticAnalysis_Output(dependentField,"diffusion_equation_analytic",err)
 
